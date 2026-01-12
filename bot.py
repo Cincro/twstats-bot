@@ -2,21 +2,50 @@ import requests
 import time
 from bs4 import BeautifulSoup
 
+# ======================
+# CONFIGURACIÓN
+# ======================
+
 URL = "https://es.twstats.com/es96/index.php?page=tribe&mode=conquers&id=30&type=gain&oldtribe=0"
 WEBHOOK_URL = "https://discordapp.com/api/webhooks/1460269970557632553/hdJ-OnUN24S_f0zwcBVsVP4tbDuciS1nKTPutLDr5r4U_D9CCe0a4KwTgjkXUYcOEAEv"
-
 CHECK_INTERVAL = 30
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (compatible; TWStatsBot/1.0)"
+}
+
 vistos = set()
 
-def enviar_discord(texto):
-    requests.post(WEBHOOK_URL, json={"content": texto})
+# ======================
+# FUNCIÓN DISCORD
+# ======================
+
+def enviar_discord(mensaje):
+    r = requests.post(WEBHOOK_URL, json={"content": mensaje})
+    if r.status_code != 204:
+        print("❌ ERROR enviando a Discord:", r.status_code, r.text)
+    else:
+        print("✅ Mensaje enviado a Discord")
+
+# ======================
+# BOT PRINCIPAL
+# ======================
+
+print("🤖 Bot iniciado correctamente")
 
 while True:
     try:
-        r = requests.get(URL, timeout=10)
-        soup = BeautifulSoup(r.text, "html.parser")
+        r = requests.get(URL, headers=HEADERS, timeout=15)
+        r.raise_for_status()
 
+        soup = BeautifulSoup(r.text, "html.parser")
         tabla = soup.find("table")
+
+        if not tabla:
+            print("⚠️ No se encontró la tabla")
+            time.sleep(CHECK_INTERVAL)
+            continue
+
         filas = tabla.find_all("tr")[1:]
 
         for fila in filas[:5]:
@@ -34,23 +63,24 @@ while True:
 
             hora = columnas[3].get_text(strip=True)
 
-            id_conquista = f"{pueblo}-{nuevo_jugador}-{antiguo_jugador}-{hora}"
+            id_conquista = f"{pueblo}|{nuevo_jugador}|{antiguo_jugador}|{hora}"
 
             if id_conquista not in vistos:
                 if vistos:
                     enviar_discord(
-                        "🏰 **NUEVA CONQUISTA**\n\n"
-                        f"🏘️ Pueblo: {pueblo}\n\n"
-                        f"🟢 Nuevo dueño: {nuevo_jugador}\n"
-                        f"🟢 Tribu nueva: {nueva_tribu}\n\n"
-                        f"🔴 Antiguo dueño: {antiguo_jugador}\n"
-                        f"🔴 Tribu antigua: {antigua_tribu}\n\n"
-                        f"⏰ Hora: {hora}"
+                        "🏰 **NUEVA CONQUISTA DETECTADA**\n\n"
+                        f"🏘️ **Pueblo:** {pueblo}\n\n"
+                        f"🟢 **Nuevo dueño:** {nuevo_jugador}\n"
+                        f"🟢 **Tribu nueva:** {nueva_tribu}\n\n"
+                        f"🔴 **Antiguo dueño:** {antiguo_jugador}\n"
+                        f"🔴 **Tribu antigua:** {antigua_tribu}\n\n"
+                        f"⏰ **Hora:** {hora}"
                     )
 
                 vistos.add(id_conquista)
+                print("✔ Conquista registrada:", id_conquista)
 
     except Exception as e:
-        print("Error:", e)
+        print("🔥 ERROR GENERAL:", e)
 
     time.sleep(CHECK_INTERVAL)
