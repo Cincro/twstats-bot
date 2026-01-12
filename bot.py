@@ -32,7 +32,6 @@ def enviar_discord(mensaje):
 # ======================
 
 print("🤖 Bot iniciado correctamente")
-enviar_discord("✅ Prueba: el bot está funcionando correctamente")
 
 
 while True:
