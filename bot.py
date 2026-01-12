@@ -3,7 +3,7 @@ import time
 from bs4 import BeautifulSoup
 
 URL = "https://es.twstats.com/es96/index.php?page=tribe&mode=conquers&id=30&type=gain&oldtribe=0"
-WEBHOOK_URL = "PEGA_AQUI_TU_WEBHOOK"
+WEBHOOK_URL = "https://discordapp.com/api/webhooks/1460269970557632553/hdJ-OnUN24S_f0zwcBVsVP4tbDuciS1nKTPutLDr5r4U_D9CCe0a4KwTgjkXUYcOEAEv"
 
 CHECK_INTERVAL = 30
 vistos = set()
